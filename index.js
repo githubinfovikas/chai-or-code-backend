@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
 connectDB()
     .then(() => {
         app.listen(process.env.PORT || 4000, () => {
-            console.log(`server is running on port http://localhost:${process.env.PORT || 4000}`);
+            console.log(`⚙️ Server is running on port http://localhost:${process.env.PORT || 3000}`);
         })
     })
     .catch((error) => console.log(error))

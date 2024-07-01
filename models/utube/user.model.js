@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 const userSchema = new Schema({
     username: {
         type: String,
-        required: {true:"Username is required"},
+        required: { true: "Username is required" },
         unique: true,
         lowercase: true,
         trim: true,
@@ -13,7 +13,7 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        required: {true:"Email is required"},
+        required: { true: "Email is required" },
         unique: true,
         lowercase: true,
         trim: true
@@ -30,7 +30,6 @@ const userSchema = new Schema({
     },
     coverImage: {
         type: String,            // use cloudinary url
-        required: true,
     },
     watchHistory: [
         {
@@ -38,9 +37,9 @@ const userSchema = new Schema({
             ref: 'Video'
         }
     ],
-    password:{
-        type:String,
-        required:{true:"Password is required"}
+    password: {
+        type: String,
+        required: { true: "Password is required" }
 
     },
     refreshToken: {
@@ -52,7 +51,7 @@ const userSchema = new Schema({
 
 userSchema.pre("save", async function (next) {
 
-    if(!this.isModified("password")){
+    if (!this.isModified("password")) {
         return next();
     }
     this.password = await bcrypt.hash(this.password, 10);
@@ -75,11 +74,11 @@ userSchema.method.generateAccessToken = function () {
             fullname: this.fullname,
 
         },
-        process.env.ACCESS_TOKEN_SECRET,{
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-        }
+        process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+    }
     )
-    
+
 }
 userSchema.method.generateRefreshToken = function () {
     jwt.sign(
@@ -87,11 +86,11 @@ userSchema.method.generateRefreshToken = function () {
             _id: this._id,
 
         },
-        process.env.REFRESH_TOKEN_SECRET,{
-            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
-        }
+        process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+    }
     )
 
 }
 
-export default User = mongoose.model('User', userSchema)
+export const User = mongoose.model('User', userSchema)
