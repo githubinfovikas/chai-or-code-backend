@@ -90,15 +90,13 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find().select("-password -refreshToken")
+    return res.status(200).json(
+        new ApiResponse(200,users,"Users fetched successfully")
+    )
+})
 
 
 
-
-
-
-
-
-
-export {
-    registerUser
-}
+export {registerUser,getAllUsers}
