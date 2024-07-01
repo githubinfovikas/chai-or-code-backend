@@ -93,6 +93,5 @@ userSchema.method.generateRefreshToken = function () {
     )
 
 }
-userSchema.method.generateRefreshToken = function () {}
 
 export default User = mongoose.model('User', userSchema)
