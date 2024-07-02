@@ -1,7 +1,7 @@
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken"
-import { User } from "../models/utube/user.model";
+import { User } from "../models/utube/user.model.js";
 
 
 
@@ -9,7 +9,8 @@ import { User } from "../models/utube/user.model";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
-        const token = req.cookie?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
+        // console.log("token",token)
 
         if (!token) {
             throw new ApiError(401, "You are not authorized to access this resource")

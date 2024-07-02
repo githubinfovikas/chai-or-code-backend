@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { User } from '../models/utube/user.model.js'
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
+import jwt from "jsonwebtoken"
 
 
 
@@ -119,20 +120,12 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
 
-    //step 1 request body se data fetch kro
-    //step 2 username and email validation
-    //step 3 find the user
-    //step 4 check for password
-    //step 5 if password wrong then access and refresh token
-    //step 6 send cookie
-
-
     //step 1
     const { username, email, password } = req.body
 
     //step 2
-    if (!username || !email) {
-        throw new ApiError(400, "username and email are required")
+    if (!username && !email) {
+        throw new ApiError(400, "username or email are required")
     }
 
     //step 3
@@ -145,9 +138,9 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     //step 4
-    const isPasswordCorrect = await user.isPasswordCorrect(password)
+    const isPasswordValid = await user.isPasswordCorrect(password)
 
-    if (!isPasswordCorrect) {
+    if (!isPasswordValid) {
         throw new ApiError(400, "Password is incorrect")
     }
 
@@ -162,6 +155,7 @@ const loginUser = asyncHandler(async (req, res) => {
         secure: true
     }
 
+    console.log("login user ", loggeedInUser)
     return res
         .status(200)
         .cookie("accessToken", accessToken, options)
@@ -169,10 +163,10 @@ const loginUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200,
                 {
-                    user:loggeedInUser,accessToken,refreshToken
+                    user: loggeedInUser, accessToken, refreshToken
                 },
 
-                 "User loggedIn in successfully")
+                "User loggedIn in successfully")
         )
 
 })
@@ -185,12 +179,12 @@ const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1
             }
         },
         {
-            new:true
+            new: true
         }
     )
 
@@ -207,10 +201,67 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, {}, "User logged out successfully")
         )
-    
+
+})
+
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+
+    //step 1 : check for access token and refresh token
+    const { incomingRefreshToken } = req.cookies.refreshToken || req.body.refreshToken
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(400, "unauthorized token")
+    }
+
+    //step 2 : verify refresh token
+
+    try {
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+        const user = await User.findById(decodedToken?._id)
+
+        if (!user) {
+            throw new ApiError(404, "Invalid refresh token")
+        }
+
+        if (incomingRefreshToken !== user.refreshToken) {
+            throw new ApiError(401, "Refresh token expired or used")
+        }
+
+
+        //step 3 : generate new access token and refresh token
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id)
+
+        return res
+            .status(200)
+            .cokkie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    { accessToken, refreshToken: newRefreshToken },
+                    "Access token refreshed successfully")
+            )
+    } catch (err) {
+        throw new ApiError(500, err?.message || "Something went wrong while refreshing access token")
+    }
+
+
 })
 
 
 
 
-export { registerUser, getAllUsers, loginUser, logoutUser }
+export {
+    registerUser,
+    getAllUsers,
+    loginUser,
+    logoutUser,
+    refreshAccessToken
+}
