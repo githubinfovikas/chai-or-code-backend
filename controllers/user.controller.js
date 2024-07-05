@@ -315,6 +315,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Error while upload on avatar")
     }
 
+    const avatarToDelete = user.avatar.public_id;
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -322,6 +324,10 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         },
         { new: true }
     ).select("-password")
+
+    if (avatarToDelete && updatedUser.avatar.public_id) {
+        await deleteOnCloudinary(avatarToDelete);
+    }
 
     return res.status(200)
         .json(
@@ -339,7 +345,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     if (!coverImage.url) {
         throw new ApiError(400, "Error while upload on cover Image")
     }
-
+    const coverImageToDelete = user.coverImage.public_id;
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -347,6 +353,10 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         },
         { new: true }
     ).select("-password")
+
+    if (coverImageToDelete && updatedUser.coverImage.public_id) {
+        await deleteOnCloudinary(coverImageToDelete);
+    }
 
     return res.status(200)
         .json(
