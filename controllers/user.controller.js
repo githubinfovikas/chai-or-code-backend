@@ -4,7 +4,7 @@ import { User } from '../models/utube/user.model.js'
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
-
+import mongoose from "mongoose"
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -424,21 +424,21 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user?.id)
+                _id: new mongoose.Types.ObjectId(req.user?._id)
             }
         },
         {
             $lookup: {
                 from: "videos",
                 localField: "watchHistory",
-                foreginField: "_id",
+                foreignField: "_id",
                 as: "watchHistory",
                 pipeline: [
                     {
                         $lookup: {
                             from: "users",
                             localField: "owner",
-                            foreginField: "_id",
+                            foreignField: "_id",
                             as: "owner",
                             pipeline: [
                                 {
@@ -466,7 +466,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .json(new ApiResponse(200, user[0].getWatchHistory, "watch history fetch successfully"))
+    .json(new ApiResponse(200, user[0].watchHistory, "watch history fetch successfully"))
 })
 
 
