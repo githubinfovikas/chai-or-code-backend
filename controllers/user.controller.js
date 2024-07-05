@@ -305,10 +305,6 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     .json(new ApiResponse(200, user, "User updated successfully"))
 })
 
-const updateUserAvatar = asyncHandler(async(req,res)=>{
-    
-})
-
 
 
 export {
@@ -316,7 +312,5 @@ export {
     getAllUsers,
     loginUser,
     logoutUser,
-    refreshAccessToken,
-    changeCurrentPassword,
-    getCurrentUser
+    refreshAccessToken
 }
